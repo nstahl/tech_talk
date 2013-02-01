@@ -1,0 +1,48 @@
+    @import url("/stylesheets/jquery-ui.css");
+
+    body, .ui-widget {
+      font: 14px Helvetica Neue;
+    }
+
+    .tip {
+      width: 50px;
+      fill: #000;
+      stroke: none;
+      .style("font-size","1em")
+      background-color:#b0e0e6;
+    }
+
+    .test {
+      fill: red;
+      stroke: steelblue;
+      stroke-width: 1.5px;
+      opacity: .2;
+    }
+
+    .dot {
+      fill: white;
+      stroke: steelblue;
+      stroke-width: 1.5px;
+      opacity: .2;
+    }
+
+    #states path {
+      fill: #ccc;
+      stroke: #fff;
+    }
+
+    #states circle {
+      fill: #fcc;
+      stroke: #000;
+    }
+
+    svg {
+      width: 500px;
+      height: 750px;
+      border: solid 1px #ccc;
+      background: #eee;
+    }
+
+    div {
+      width: 500px;
+    }
