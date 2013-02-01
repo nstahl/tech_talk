@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <title>Twitter Map</title>
+    <script type="text/javascript" src="/javascripts/d3.v2.min.js"></script>
+    <script type="text/javascript" src="/javascripts/jquery.min.js"></script>
+    <script type="text/javascript" src="/javascripts/jquery.tipsy.js"></script>
+    <script type="text/javascript" src="/javascripts/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/javascripts/jquery-ui/jquery-ui.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <link href="/stylesheets/tipsy.css" rel="stylesheet" type="text/css" />
+    <link href="/stylesheets/bootstrap.css" rel="stylesheet" type="text/css" />
+    <style type="text/css">
+    @import url("/stylesheets/jquery-ui.css");
+
+    body, .ui-widget {
+      padding-top: 10px;
+      font: 14px Helvetica Neue;
+    }
+
+    .tip {
+      width: 50px;
+      fill: #000;
+      stroke: none;
+      .style("font-size","1em")
+      background-color:#b0e0e6;
+    }
+
+    .test {
+      fill: red;
+      stroke: steelblue;
+      stroke-width: 1.5px;
+      opacity: .2;
+    }
+
+    .dot {
+      fill: purple;
+      stroke: purple;
+      stroke-width: 1.5px;
+      opacity: .8;
+    }
+
+    #states path {
+      fill: #ccc;
+      stroke: #fff;
+    }
+
+    #states circle {
+      fill: #fcc;
+      stroke: #000;
+    }
+
+    svg {
+      width: 500px;
+      height: 750px;
+      border: solid 1px #ccc;
+      background: #eee;
+    }
+
+    </style>
+
+
+  </head>
+
+
+
+  <body>
+
+    <div class="container">
+      <div class="row">
+        <div class="span7" id="tweet_map"></div>
+        <div class="span5" id="tweet_list"></div>
+      </div>
+
+    </div>
+
+<script type="text/javascript">
+
+var addTweet = function(tweetObj) {
+
+var tweetId = "t_" + tweetCounter;
+//calc projection
+var projCoords = xy([tweetObj.lon, tweetObj.lat]);
+tweetObj["x"] = projCoords[0];
+tweetObj["y"] = projCoords[1];
+
+var tweetCircle = tweetsGroup.selectAll("#" + tweetId)
+      .data([tweetObj])
+      .enter()
+    .append("svg:circle")
+      .attr("class","dot")
+      .attr("id", tweetId)
+      .attr("cx", function(d){return d.x;})
+      .attr("cy", function(d){return d.y;})
+      .attr("r", 0);
+
+  //http://bost.ocks.org/mike/transition/
+  tweetCircle.transition().duration(500).attr("r", 10);
+  tweetCircle.transition().delay(750).duration(30000).style("opacity", ".3");
+
+
+  $('#'+tweetId).tipsy({
+    gravity: 'w', 
+    html: true, 
+    title: function() {
+      var d = this.__data__;
+      return "<p>"+d.text+"</p><p>"+d.time+"</p><p>"+d.lon+" | "+d.lat+"</p>"; 
+    }
+  });
+/*
+//add to list
+ulist.append('li')
+      .text(tweetObj.text);
+*/
+
+};//end addTweet
+
+
+
+var setupMap = function() {
+  
+  d3.selectAll("#states path")
+      .attr("d", path);
+  d3.select("#parallels span")
+      .text(xy.parallels());
+  d3.select("#lon span")
+      .text(xy.origin()[0]);
+  d3.select("#lat span")
+      .text(xy.origin()[1]);
+  d3.select("#scale span")
+      .text(xy.scale());
+  d3.select("#translate-x span")
+      .text(xy.translate()[0]);
+  d3.select("#translate-y span")
+      .text(xy.translate()[1]);
+};
+
+//execution
+//projection.
+var tweetCounter = 0;
+var xy = d3.geo.albers(),
+    path = d3.geo.path().projection(xy),
+    lon_nyc = -74.0064,
+    lat_nyc =  40.7142,
+    scale_nyc = 250000,
+    translate_x = 100,
+    translate_y = 550;
+    
+//scale
+xy.scale(scale_nyc);
+//translate
+xy.translate()[0] = translate_x;
+xy.translate()[1] = translate_y;
+//origin
+var my_origin = [lon_nyc, lat_nyc];
+xy.origin(my_origin);
+
+var svg = d3.select("#tweet_map")
+  .append("svg");
+
+var ulist = d3.select("#tweet_list")
+  .append("ul");
+
+//append group for districts/sates
+svg.append("g").attr("id", "states");
+//append group for tweets
+var tweetsGroup = svg.append("g").attr("id", "tweets");
+
+
+var socket = io.connect();
+
+d3.json("/data/nyct2010.json", function(collection) {
+  d3.select("#states")
+    .selectAll("path")
+      .data(collection.features)
+    .enter().append("path")
+      .attr("d", path);
+
+  setupMap();
+
+  //get twitter stream
+  socket.on('tweet', function (data) {
+    tweetCounter++;
+    addTweet(data);
+  });
+
+});
+
+</script>
+
+  </body>
+</html>
