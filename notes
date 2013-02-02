@@ -1,0 +1,5 @@
+Node.js: is a platform for building scalable network applications with javascript. Non-blocking, event-driven model.
+
+d3.js: A javascript library for manipulating documents based on data. Bind data to the DOM (document object model). Style, Position, Size can be defined as functions of data - not simply constants. Michael Bostock 
+
+jQuery: a DOM framework
